@@ -32,7 +32,12 @@
                                             <i class="fas fa-sort"></i>
                                         </button>
                                     </th>
-                                    <th>Quantity</th>
+                                    <th>
+                                        Quantity
+                                        <button v-on:click="orderBy('quantity')" class="btn btn-link btn-sm px-0 py-0">
+                                            <i class="fas fa-sort"></i>
+                                        </button>
+                                    </th>
                                     <th>
                                     </th>
                                 </tr>

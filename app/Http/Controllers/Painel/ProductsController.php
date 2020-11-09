@@ -31,10 +31,12 @@ class ProductsController extends Controller
     {
         try{
             
+            #QUERY THE PRODUCTS WITH THE LOGS ORDER BY ASC
             $products = Product::with(['logs.user' => function($query){
                 $query->orderBy('created_at', 'asc');
             }])->orderBy('id', $request->input('order'));
 
+            #FILTER TO ORDER THE PRODUCTS
             if($request->input('by')){
                 $products->orderBy($request->input('by', $request->input('order')));
             }
@@ -78,6 +80,7 @@ class ProductsController extends Controller
             
             DB::beginTransaction();
 
+                #PASSES THROUGH THE PRODUCTS SENT IN THE REQUEST
                 foreach($request->input('products') as $_product){
 
                     $_product = (object) $_product;
@@ -91,6 +94,7 @@ class ProductsController extends Controller
                     #IF HAS A PRODUCT WITH THE SAME SLUG, GENERATE A NEW ONE
                     if($hasSlug) $slug = $slug . Str::random(3);
 
+                    #CREATE THE PRODUCTS
                     $product = Product::create([
                         'name' => $_product->name,
                         'slug' => $slug,
@@ -98,7 +102,8 @@ class ProductsController extends Controller
                         'price' => $_product->price,
                         'quantity' => $_product->quantity,
                     ]);
-
+                    
+                    #CREATE THE PRODUCT LOG
                     ProductLog::create([
                         'user_id' => Auth::user()->id,
                         'product_id' => $product->id,
@@ -114,6 +119,7 @@ class ProductsController extends Controller
 
         }catch(\Exception $e){
             
+            #MAKE THE ERROR LOG
             ProductLog::create([
                 'user_id' => Auth::user()->id,
                 'product_id' => $product->id,
@@ -165,12 +171,15 @@ class ProductsController extends Controller
             
             DB::beginTransaction();
 
+                #PASSES THROUGH THE PRODUCTS SENT IN THE REQUEST
                 foreach($request->input('products.data') as $product){
                     
                     $product = (object) $product;
                     
+                    #FIND THE OLD PRODUCT TO COMPARE WITH THE NEW ONE(EDITED)
                     $oldProduct = Product::find($product->id);
                     
+                    #EDIT THE PRODUCT
                     $editedProduct = Product::find($product->id);
                     $editedProduct->name = $product->name;
                     $editedProduct->slug = $product->slug;
@@ -179,6 +188,7 @@ class ProductsController extends Controller
                     $editedProduct->quantity = $product->quantity;
                     $editedProduct->save();
                     
+                    #CALLS A HELPER TO MAKE THE CHANGES COMPARATION
                     ProductLogHelper::makeLog($oldProduct, $editedProduct, Auth::user()->id);
 
                 }
@@ -191,6 +201,7 @@ class ProductsController extends Controller
 
         }catch(\Exception $e){
             
+            #MAKE THE ERROR LOG
             ProductLog::create([
                 'user_id' => Auth::user()->id,
                 'product_id' => $editedProduct->id,
@@ -219,10 +230,13 @@ class ProductsController extends Controller
 
             DB::beginTransaction();
 
+                #FIND THE PRODUCT
                 $product = Product::find($id);
 
+                #FILL OUT THE DELETED_AT COLUMN
                 $product->delete();
 
+                #MAKE THE DELETE LOG
                 ProductLog::create([
                     'user_id' => Auth::user()->id,
                     'product_id' => $id,
