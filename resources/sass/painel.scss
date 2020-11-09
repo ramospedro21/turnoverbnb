@@ -1,0 +1,30 @@
+
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Ubuntu:300,400,700,900');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import '~material-dashboard/assets/scss/material-dashboard';
+
+@import 'painel/menu';
+@import 'painel/sidebar';
+
+.navbar-laravel {
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.tox-notifications-container, .tox-statusbar__branding {
+  display: none !important;
+}
+
+.fab{
+
+  z-index: 82;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+
+}

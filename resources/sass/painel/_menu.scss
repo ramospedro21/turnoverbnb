@@ -1,0 +1,112 @@
+.header{
+    background-color: $brand-primary;
+    padding: 15px;
+}
+
+.panel{
+    background-color: #000000;
+}
+
+#left-bar{
+    position: fixed;
+    background: #ffffff;
+    height: 100%;
+}
+
+#left-bar button{
+    font-size: 18px;
+}
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index:999;
+    top: 0;
+    left: 0;
+    background-color: #26AEAE;
+    overflow-x: hidden;
+    transition: 0.3s;
+    padding-top: 25px;
+}
+
+.sidenav a {
+    width: 250px;
+    padding: 8px;
+    text-decoration: none;
+    font-size: 12px;
+    color: $brand-primary;
+    font-weight: 700;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover {
+    color: $brand-primary;
+}
+
+.nav-primary{
+    background-color: $brand-primary;
+}
+
+@media (max-width: 575.98px) and (max-width: 767.98px) { 
+
+    #top-bar{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1;
+        background: #000000;
+        border-bottom: 1px solid #818181;
+    }
+
+    #top-bar button{
+        font-size: 21px;
+    }
+
+    #top-bar img{
+        float: right;
+        margin: 15px 30px;
+    }
+
+    #left-bar{
+        display: none;
+    }
+
+    #content{
+        width: 100%;
+        position: absolute;
+        left: 0;
+        overflow-x: hidden;
+    }
+
+}
+@media (min-width: 768px) { 
+
+    #top-bar{
+        display: none;
+    }
+
+    #left-bar{
+        padding: 18px 25px;
+        border-right: 1px solid #f0f0f0;
+    }
+
+    #left-bar img {
+        width: 40px;
+    }
+
+    #left-bar button {
+        width: 40px;
+        padding: 0;
+        margin: 0;
+    }
+
+    #content{
+        width: calc(100% - 91px);
+        position: absolute;
+        left: 91px;
+    }
+
+}
