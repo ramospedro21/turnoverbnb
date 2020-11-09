@@ -15,11 +15,11 @@ class ProductLogHelper {
     
             $message = '';
 
-            if($editedProduct->name != $oldProduct->name) $message = $message . 'old name:' . $oldProduct->name . ' / new name: ' . $editedProduct->name . ', ';
-            if($editedProduct->slug != $oldProduct->slug) $message = $message . 'old slug:' . $oldProduct->slug . ' / new slug: ' . $editedProduct->slug . ', ';
-            if($editedProduct->sku != $oldProduct->sku) $message = $message . 'old sku:' . $oldProduct->sku . ' / new sku: ' . $editedProduct->sku . ', ';
-            if($editedProduct->price != $oldProduct->price) $message = $message . 'old price:' . $oldProduct->price . ' / new price: ' . $editedProduct->price . ', ';
-            if($editedProduct->quantity != $oldProduct->quantity) $message = $message . 'old quantity:' . $oldProduct->quantity . ' / new quantity: ' . $editedProduct->quantity . ', ';
+            if($editedProduct->name != $oldProduct->name) $message = $message . 'Old name: ' . $oldProduct->name . ' / New name: ' . $editedProduct->name . ', ';
+            if($editedProduct->slug != $oldProduct->slug) $message = $message . 'Old slug: ' . $oldProduct->slug . ' / New slug: ' . $editedProduct->slug . ', ';
+            if($editedProduct->sku != $oldProduct->sku) $message = $message . 'Old sku: ' . $oldProduct->sku . ' / New sku: ' . $editedProduct->sku . ', ';
+            if($editedProduct->price != $oldProduct->price) $message = $message . 'Old price: ' . $oldProduct->price . ' / New price: ' . $editedProduct->price . ', ';
+            if($editedProduct->quantity != $oldProduct->quantity) $message = $message . 'Old quantity: ' . $oldProduct->quantity . ' / New quantity: ' . $editedProduct->quantity . ', ';
             
             ProductLog::create([
                 'user_id' => $user_id,

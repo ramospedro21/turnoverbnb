@@ -24,7 +24,9 @@ Route::prefix('/painel')->group(function(){
 
     // PRODUCTS ROUTE
     Route::get('/products', 'Painel\ProductsController@view');
-    Route::resource('/product', 'Painel\ProductsController');
-    Route::post('/product/bulk', 'Painel\ProductsController@bulkEdit');
+    Route::get('/product', 'Painel\ProductsController@index');
+    Route::post('/product', 'Painel\ProductsController@store');
+    Route::post('/product/update', 'Painel\ProductsController@update');
+    Route::delete('/product/{id}', 'Painel\ProductsController@destroy');
 
 });

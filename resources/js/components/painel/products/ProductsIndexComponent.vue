@@ -9,8 +9,8 @@
 								<h3 class="card-title h5">Products</h3>
 							</div>
                             <div class="col-md-3 text-right">
-                                <button type="button" class="btn btn-info" @click="editBulkProducts(0)" v-if="selectedProducts.length == 0">Edit all products</button>
-                                <button type="button" class="btn btn-info" @click="editBulkProducts(1)" v-else>Edit selected products</button>
+                                <button type="button" class="btn btn-info" @click="edit(0)" v-if="selectedProducts.length == 0">Edit all products</button>
+                                <button type="button" class="btn btn-info" @click="edit(1)" v-else>Edit selected products</button>
                             </div>
 							<div class="col-md-3 text-right text-secondary">
                                 <button type="button" class="btn btn-block btn-info" @click="create()">
@@ -49,7 +49,7 @@
                                     <td>{{ product.quantity }}</td>
                                     <td>
                                         <i class="pointer fas fa-history mr-1" @click="openHistoryModal(product)"></i>
-                                        <i class="pointer fas fa-edit mr-1" @click="edit(product)"></i>
+                                        <i class="pointer fas fa-edit mr-1" @click="edit(1, product)"></i>
                                         <i class="pointer fas fa-trash" @click="openDeleteModal(product)"></i>
                                     </td>
                                 </tr>
@@ -92,45 +92,60 @@
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="productLabel">{{ product.id ? 'Edit product' : 'Add new product' }}</h5>
+                        <h5 class="modal-title" id="productLabel">{{ action == 1 ? 'Edit product(s)' : 'Add new product(s)' }}</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                     </div>
-                    <form @submit.prevent="product.id ? update() : store()">
+                    <form @submit.prevent="action == 1 ? update() : store()">
                         <div class="modal-body">
-                            <div class="row">
-                                <div class="col">
-                                    <div class="form-group">
-                                        <label class="form-control-label">Name: *</label>
-                                        <input type="text" class="form-control" v-model="product.name" required>
-                                    </div>
-                                </div>
-                                <div class="col" v-if="product.id">
-                                    <div class="form-group">
-                                        <label class="form-control-label">Slug: *</label>
-                                        <input type="text" class="form-control" v-model="product.slug" required>
-                                    </div>
+                            <div class="row justify-content-end" v-if="action == 0">
+                                <div class="col-4">
+                                    <button type="button" class="btn btn-block btn-info" @click="addOneProduct()">
+                                        <i class="fa fa-plus mr-2"></i> One Product
+                                    </button>
                                 </div>
                             </div>
-                            <div class="row">
+                            <div class="row" v-for="(p, i) in createProducts" :key="p.id">
                                 <div class="col">
-                                    <div class="form-group">
-                                        <label class="form-control-label">Price: *</label>
-                                        <money v-bind="money" class="form-control" v-model="product.price"/>
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Name: *</label>
+                                                <input type="text" class="form-control" v-model="p.name" required>
+                                            </div>
+                                        </div>
+                                        <span class="close mr-2 mt-2" v-if="action == 0">
+                                            <i class="fa-times-circle fas text-danger pointer" @click="removeProduct(i)" />
+                                        </span>
+                                        <div class="col" v-if="p.id">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Slug: *</label>
+                                                <input type="text" class="form-control" v-model="p.slug" required>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col">
-                                    <div class="form-group">
-                                        <label class="form-control-label">Quantity: *</label>
-                                        <input type="number" class="form-control" v-model="product.quantity" required>
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Price: *</label>
+                                                <money v-bind="money" class="form-control" v-model="p.price"/>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label class="form-control-label">Quantity: *</label>
+                                                <input type="number" class="form-control" v-model="p.quantity" required>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <div class="form-group">
+                                                <label class="form-control-label">SKU: *</label>
+                                                <input type="number" class="form-control" v-model="p.sku" required>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col">
-                                    <div class="form-group">
-                                        <label class="form-control-label">SKU: *</label>
-                                        <input type="number" class="form-control" v-model="product.sku" required>
-                                    </div>
+                                    <hr>
                                 </div>
                             </div>
                         </div>
@@ -283,7 +298,7 @@ export default {
 
             loading: {
                 buttonProduct: false,
-                buttonBulk: false,
+                buttonDeleteProduct: false,
                 page: false,
             },
             
@@ -300,9 +315,13 @@ export default {
                 per_page: 16
             },
 
+            createProducts: [],
             selectedProducts: [],
+
             by: '',
             order: 'asc',
+            counter: 1,
+            action: null,
         }
     },
 
@@ -331,13 +350,16 @@ export default {
 
         create: function(){
 
-            this.product = {
+            this.createProducts = [];
+            
+            this.createProducts.push({ 
                 name: null,
                 slug: null,
                 price: null,
                 quantity: null,
                 sku: null,
-            }
+            });
+            this.action = 0;
 
             $("#productsModal").modal('show');
 
@@ -350,7 +372,7 @@ export default {
             try{
 
                 const {data} = await axios.post(`/painel/product`, {
-                    product: this.product,
+                    products: this.createProducts,
                 });
 
                 showSuccessToast('The product was successfully registered.');
@@ -368,12 +390,23 @@ export default {
             }
         },
 
-        edit: function(product){
+        edit: function(status = null, product = null){
+            
+            this.createProducts = [];
+            
+            if(status == 0){
 
-            this.product = {
-                ...product
+                this.createProducts = this.products.data;
+
+            }else{
+
+                if(product == null) this.createProducts = this.selectedProducts;
+                else if (product != null) this.createProducts.push(product);
+
             }
             
+            this.action = 1;
+
             $("#productsModal").modal('show');
         },
 
@@ -383,8 +416,8 @@ export default {
 
             try{
 
-                const {data} = await axios.patch(`/painel/product/${this.product.id}`, {
-                    product: this.product
+                const {data} = await axios.post(`/painel/product/update`, {
+                    products: this.products
                 });
 
                 this.index();
@@ -412,13 +445,15 @@ export default {
         },
 
         destroy: async function(){
+            this.loading.buttonDeleteProduct = true;
+            
             try{
 
                 await axios.delete(`/painel/product/${this.product.id}`)
                 
                 this.index();
 
-                this.loading.buttonProduct = false;
+                this.loading.buttonDeleteProduct = false;
 
                 showSuccessToast('The product was successfully deleted.');
                 
@@ -426,7 +461,7 @@ export default {
 
             }catch(e){
 
-                this.loading.buttonProduct = false;
+                this.loading.buttonDeleteProduct = false;
 
                 showErrorToast('The product wasn’t successfully deleted.');
 
@@ -442,41 +477,6 @@ export default {
             $("#historyModal").modal('show');
         },
 
-        editBulkProducts: function(status){
-
-            if(status == 0) this.selectedProducts = this.products.data;
-
-            $("#editBulkModal").modal('show');
-
-        },
-
-        editBulk: async function(){
-
-            this.loading.buttonBulk = true;
-
-            try{
-
-                const {data} = await axios.post(`/painel/product/bulk`,{
-                    products: this.selectedProducts,
-                });
-
-                this.loading.buttonBulk = false;
-
-                this.index();
-
-                showSuccessToast('Bulk products was successfully edited.');
-
-                $("#editBulkModal").modal('hide');
-
-            }catch(e){
-
-                this.loading.buttonBulk = false;
-
-                showErrorToast('Bulk products wasn’t successfully edited.');
-
-            }
-        },
-
         orderBy: function(string){
 
             if(string == this.by && this.order == 'desc') this.order = 'asc';
@@ -485,6 +485,22 @@ export default {
             this.by = string;
             this.index(1);
         },
+
+        addOneProduct: function(){
+            this.createProducts.push({ 
+                name: null,
+                slug: null,
+                price: null,
+                quantity: null,
+                sku: null,
+            });
+        },
+        
+        removeProduct: function(i){
+
+            this.createProducts.splice(i, 1);
+
+        }
     },
     
     mounted(){

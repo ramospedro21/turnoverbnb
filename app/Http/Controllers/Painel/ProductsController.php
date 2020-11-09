@@ -75,31 +75,36 @@ class ProductsController extends Controller
     public function store(Request $request)
     {
         try{
-
+            
             DB::beginTransaction();
 
-                #MAKE THE PRODUCT SLUG
-                $slug = Str::slug($request->input('product.name'), '-');
-                
-                #VERIFY IF EXISTS A PRODUCT WITH THE SAME SLUG
-                $hasSlug = Product::where('slug', $slug)->first();
+                foreach($request->input('products') as $_product){
 
-                #IF HAS A PRODUCT WITH THE SAME SLUG, GENERATE A NEW ONE
-                if($hasSlug) $slug = $slug . Str::random(3);
+                    $_product = (object) $_product;
 
-                $product = Product::create([
-                    'name' => $request->input('product.name'),
-                    'slug' => $slug,
-                    'sku' => $request->input('product.sku'),
-                    'price' => $request->input('product.price'),
-                    'quantity' => $request->input('product.quantity'),
-                ]);
+                    #MAKE THE PRODUCT SLUG
+                    $slug = Str::slug($_product->name, '-');
+                    
+                    #VERIFY IF EXISTS A PRODUCT WITH THE SAME SLUG
+                    $hasSlug = Product::where('slug', $slug)->first();
 
-                ProductLog::create([
-                    'user_id' => Auth::user()->id,
-                    'product_id' => $product->id,
-                    'desc' => "The product '" . $product->name . "' was successfully registered.",
-                ]);
+                    #IF HAS A PRODUCT WITH THE SAME SLUG, GENERATE A NEW ONE
+                    if($hasSlug) $slug = $slug . Str::random(3);
+
+                    $product = Product::create([
+                        'name' => $_product->name,
+                        'slug' => $slug,
+                        'sku' => $_product->sku,
+                        'price' => $_product->price,
+                        'quantity' => $_product->quantity,
+                    ]);
+
+                    ProductLog::create([
+                        'user_id' => Auth::user()->id,
+                        'product_id' => $product->id,
+                        'desc' => "The product '" . $product->name . "' was successfully registered.",
+                    ]);
+                }
 
             DB::commit();
 
@@ -108,7 +113,7 @@ class ProductsController extends Controller
             ], 200);
 
         }catch(\Exception $e){
-
+            
             ProductLog::create([
                 'user_id' => Auth::user()->id,
                 'product_id' => $product->id,
@@ -154,23 +159,29 @@ class ProductsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
-    {
-        try{
 
+    public function update(Request $request){
+        try{
+            
             DB::beginTransaction();
 
-                $oldProduct = Product::find($id);
+                foreach($request->input('products.data') as $product){
+                    
+                    $product = (object) $product;
+                    
+                    $oldProduct = Product::find($product->id);
+                    
+                    $editedProduct = Product::find($product->id);
+                    $editedProduct->name = $product->name;
+                    $editedProduct->slug = $product->slug;
+                    $editedProduct->sku = $product->sku;
+                    $editedProduct->price = $product->price;
+                    $editedProduct->quantity = $product->quantity;
+                    $editedProduct->save();
+                    
+                    ProductLogHelper::makeLog($oldProduct, $editedProduct, Auth::user()->id);
 
-                $editedProduct = Product::find($id);
-                $editedProduct->name = $request->input('product.name');
-                $editedProduct->slug = $request->input('product.slug');
-                $editedProduct->sku = $request->input('product.sku');
-                $editedProduct->price = $request->input('product.price');
-                $editedProduct->quantity = $request->input('product.quantity');
-                $editedProduct->save();
-
-                ProductLogHelper::makeLog($oldProduct, $editedProduct, Auth::user()->id);
+                }
 
             DB::commit();
 
@@ -182,7 +193,7 @@ class ProductsController extends Controller
             
             ProductLog::create([
                 'user_id' => Auth::user()->id,
-                'product_id' => $id,
+                'product_id' => $editedProduct->id,
                 'desc' => "The product '" . $editedProduct->name . "' wasn’t successfully edited. Error: " . $e->getMessage(),
             ]);
 
@@ -234,53 +245,6 @@ class ProductsController extends Controller
 
             return response()->json([
                 'message' => 'It wasn’t possible to delete the product.',
-                'errors' => [
-                    'message' => $e->getMessage(),
-                    'line' => $e->getLine(),
-                ]
-            ], 500);
-        }
-    }
-
-    public function bulkEdit(Request $request){
-        try{
-            
-            DB::beginTransaction();
-
-                foreach($request->input('products') as $product){
-                    
-                    $product = (object) $product;
-                    
-                    $oldProduct = Product::find($product->id);
-                    
-                    $editedProduct = Product::find($product->id);
-                    $editedProduct->name = $product->name;
-                    $editedProduct->slug = $product->slug;
-                    $editedProduct->sku = $product->sku;
-                    $editedProduct->price = $product->price;
-                    $editedProduct->quantity = $product->quantity;
-                    $editedProduct->save();
-                    
-                    ProductLogHelper::makeLog($oldProduct, $editedProduct, Auth::user()->id);
-
-                }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true
-            ], 200);
-
-        }catch(\Exception $e){
-            
-            ProductLog::create([
-                'user_id' => Auth::user()->id,
-                'product_id' => $id,
-                'desc' => "The product '" . $editedProduct->name . "' wasn’t successfully edited. Error: " . $e->getMessage(),
-            ]);
-
-            return response()->json([
-                'message' => 'It wasn’t possible to edited the product.',
                 'errors' => [
                     'message' => $e->getMessage(),
                     'line' => $e->getLine(),
